@@ -22,7 +22,7 @@
 				int Bit = index.IsFromEnd ? 16 - index.Value : index.Value;
 
 				if (Bit < 0 || 15 < Bit)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(index), $"Must be in the interval [0, 15]");
 
 				return (((uint) Raw >> Bit) & 1u) == 1u;
 			}
@@ -31,7 +31,7 @@
 				int Bit = index.IsFromEnd ? 16 - index.Value : index.Value;
 
 				if (Bit < 0 || 15 < Bit)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(index), $"Must be in the interval [0, 15]");
 
 				Raw = (ushort) (Raw & ~(1u << Bit) | (value ? 1u : 0u << Bit));
 			}
@@ -44,10 +44,13 @@
 				int End = range.End.IsFromEnd ? 16 - range.End.Value : range.End.Value;
 
 				if (Start < 0 || 15 < Start)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be in the interval [0, 15]");
 
-				if (End < 0 || 16 < End)
-					throw new IndexOutOfRangeException();
+				if (End < 1 || 16 < End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"End must be in the interval [1, 16]");
+
+				if (Start >= End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be greater than end");
 
 				uint Mask = (1u << End - Start) - 1u;
 				return (ushort) ((uint) Raw >> Start & Mask);
@@ -58,13 +61,16 @@
 				int End = range.End.IsFromEnd ? 16 - range.End.Value : range.End.Value;
 
 				if (Start < 0 || 15 < Start)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be in the interval [0, 15]");
 
-				if (End < 0 || 16 < End)
-					throw new IndexOutOfRangeException();
+				if (End < 1 || 16 < End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"End must be in the interval [1, 16]");
 
-				if (Math.Log2(value) > End - Start)
-					throw new ArgumentOutOfRangeException(nameof(value));
+				if (Start >= End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be greater than end");
+
+				if (Math.Floor(Math.Log2(value)) + 1 > End - Start)
+					throw new ArgumentOutOfRangeException(nameof(value), $"Value too big to fit into {End - Start} bits");
 
 				uint Mask = (1u << End - Start) - 1u;
 				Raw = (ushort) (Raw & ~(Mask << Start) | ((value & Mask) << Start));

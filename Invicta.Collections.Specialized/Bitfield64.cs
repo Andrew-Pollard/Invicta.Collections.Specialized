@@ -30,7 +30,7 @@
 				int Bit = index.IsFromEnd ? 64 - index.Value : index.Value;
 
 				if (Bit < 0 || 63 < Bit)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(index), $"Must be in the interval [0, 63]");
 
 				return ((Raw >> Bit) & 1ul) == 1ul;
 			}
@@ -39,7 +39,7 @@
 				int Bit = index.IsFromEnd ? 64 - index.Value : index.Value;
 
 				if (Bit < 0 || 63 < Bit)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(index), $"Must be in the interval [0, 63]");
 
 				Raw = Raw & ~(1ul << Bit) | (value ? 1ul : 0ul << Bit);
 			}
@@ -52,10 +52,13 @@
 				int End = range.End.IsFromEnd ? 64 - range.End.Value : range.End.Value;
 
 				if (Start < 0 || 63 < Start)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be in the interval [0, 63]");
 
-				if (End < 0 || 64 < End)
-					throw new IndexOutOfRangeException();
+				if (End < 1 || 64 < End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"End must be in the interval [1, 64]");
+
+				if (Start >= End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be greater than end");
 
 				ulong Mask = (1ul << End - Start) - 1ul;
 				return Raw >> Start & Mask;
@@ -66,13 +69,16 @@
 				int End = range.End.IsFromEnd ? 32 - range.End.Value : range.End.Value;
 
 				if (Start < 0 || 63 < Start)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be in the interval [0, 63]");
 
-				if (End < 0 || 64 < End)
-					throw new IndexOutOfRangeException();
+				if (End < 1 || 64 < End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"End must be in the interval [1, 64]");
 
-				if (Math.Log2(value) > End - Start)
-					throw new ArgumentOutOfRangeException(nameof(value));
+				if (Start >= End)
+					throw new ArgumentOutOfRangeException(nameof(range), $"Start must be greater than end");
+
+				if (Math.Floor(Math.Log2(value)) + 1 > End - Start)
+					throw new ArgumentOutOfRangeException(nameof(value), $"Value too big to fit into {End - Start} bits");
 
 				ulong Mask = (1ul << End - Start) - 1ul;
 				Raw = Raw & ~(Mask << Start) | ((value & Mask) << Start);
